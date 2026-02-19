@@ -7,8 +7,9 @@
 #
 # HOW TO USE:
 #   1. Edit $folderPath below to point to your folder
-#   2. Optionally set $prefix (e.g. "holiday_") or leave empty
-#   3. Open PowerShell (run as administrator), navigate to the folder containing the script (e.g. cd C:\Users\Admin\Desktop\FolderName) and run:
+#	2. Check if $counter is set to 1 or the value that you want
+#   3. Optionally set $prefix (e.g. "holiday_") or leave empty
+#   4. Open PowerShell (run as administrator), navigate to the folder containing the script (e.g. cd C:\Users\Admin\Desktop\FolderName) and run:
 #        -		Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 #        -		.\rename.ps1
 #      (see bottom of file for explanation of these commands)
@@ -23,11 +24,10 @@
 
 # === CONFIGURATION ===
 $folderPath = "C:\Users\Admin\Desktop\FolderName"   # <-- Change this to your folder path
-$prefix = ""                           # Optional extra prefix, e.g. "holiday_". Result will be: 001_holiday_filename.jpg
+$prefix = ""		# Optional extra prefix, e.g. "holiday_". Result will be: 001_holiday_filename.jpg
 
 # === LOAD REQUIRED ASSEMBLY ===
-# System.Drawing is a built-in .NET library that lets PowerShell
-# read image files and extract their EXIF metadata
+# System.Drawing is a built-in .NET library that lets PowerShell read image files and extract their EXIF metadata
 Add-Type -AssemblyName System.Drawing
 
 function Get-MediaDate {
@@ -70,8 +70,7 @@ function Get-MediaDate {
             $item = $folder.ParseName($file.Name)
             $dateStr = $folder.GetDetailsOf($item, 208)   # 208 = "Media created"
             if ($dateStr) {
-                # Windows sometimes injects hidden unicode characters into this string
-                # (e.g. left-to-right marks). Strip anything non-printable before parsing.
+                # Windows sometimes injects hidden unicode characters into this string (e.g. left-to-right marks). Strip anything non-printable before parsing.
                 $dateStr = $dateStr -replace '[^\x20-\x7E]', '' -replace '\s+', ' '
                 return [datetime]::Parse($dateStr)
             }
@@ -80,8 +79,7 @@ function Get-MediaDate {
 
     # --- Fallback ---
     # If no EXIF or media metadata is found, use the file's LastWriteTime.
-    # This is not ideal but better than failing. Check the printed output
-    # after running to spot any files that may have gotten wrong dates.
+    # This is not ideal but better than failing. Check the printed output after running to spot any files that may have gotten wrong dates.
     return $file.LastWriteTime
 }
 
@@ -91,8 +89,7 @@ function Get-MediaDate {
 $files = Get-ChildItem -Path $folderPath -File |
     Where-Object { $_.Extension -match '\.(jpg|jpeg|png|mp4|mov|avi|mkv)$' }
 
-# Call Get-MediaDate on each file, bundle it with the file object,
-# then sort the whole collection by that date ascending (oldest first)
+# Call Get-MediaDate on each file, bundle it with the file object, then sort the whole collection by that date ascending (oldest first)
 $sorted = $files | ForEach-Object {
     [PSCustomObject]@{
         File      = $_
